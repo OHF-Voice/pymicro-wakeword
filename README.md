@@ -24,3 +24,18 @@ while audio := get_10ms_of_audio():
         print("Detected!")
 ```
 
+
+## Command-Line
+
+### WAVE files
+
+``` sh
+python3 -m pymicro_wakeword --model 'okay_nabu' /path/to/*.wav
+```
+
+### Live
+
+``` sh
+arecord -r 16000 -c 1 -f S16_LE -t raw | \
+  python3 -m pymicro_wakeword --model 'okay_nabu'
+```
