@@ -1,0 +1,3 @@
+include requirements.txt
+recursive-include pymicro_wakeword/models/*.json
+recursive-include pymicro_wakeword/models/*.tflite

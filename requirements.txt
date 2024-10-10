@@ -1,0 +1,3 @@
+pymicro-features==1.0.0
+tensorflow>=2.14
+numpy<2
