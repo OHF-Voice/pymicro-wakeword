@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Deque, List, Optional, Union
 
 import numpy as np
-import tensorflow as tf
+import tflite_runtime.interpreter as tflite
 from pymicro_features import MicroFrontend
 
 from .const import ClipResult, Model
@@ -56,7 +56,7 @@ class MicroWakeWord:
         self.sliding_window_size = sliding_window_size
         self.refractory_seconds = refractory_seconds
 
-        self.interpreter = tf.lite.Interpreter(model_path=str(self.tflite_model))
+        self.interpreter = tflite.Interpreter(model_path=str(self.tflite_model))
         self.output_details = self.interpreter.get_output_details()[0]
         self.input_details = self.interpreter.get_input_details()[0]
         self.interpreter.allocate_tensors()
@@ -93,7 +93,7 @@ class MicroWakeWord:
 
         # Need to reload model to reset intermediary results
         # reset_all_variables() doesn't work.
-        self.interpreter = tf.lite.Interpreter(model_path=str(self.tflite_model))
+        self.interpreter = tflite.Interpreter(model_path=str(self.tflite_model))
         self.interpreter.allocate_tensors()
 
     @property
