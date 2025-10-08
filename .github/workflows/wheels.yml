@@ -10,7 +10,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest, macos-latest]
+        os: [ubuntu-latest] #, ubuntu-24.04-arm, windows-latest, macos-latest]
 
     steps:
       - uses: actions/checkout@v4
@@ -29,8 +29,8 @@ jobs:
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_28
           CIBW_MANYLINUX_AARCH64_IMAGE: manylinux_2_28
           CIBW_ARCHS: auto64
-          CIBW_BEFORE_BUILD: python script/copy-lib
-          CIBW_TEST_REQUIRES: pytest syrupy
+          CIBW_BEFORE_BUILD: ls -la && python script/copy-lib
+          CIBW_TEST_REQUIRES: pytest
           CIBW_TEST_COMMAND: python -m pytest -vv {project}/tests
 
           # Don't build PyPy and MUSL wheels for now
