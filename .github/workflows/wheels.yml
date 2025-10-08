@@ -32,6 +32,7 @@ jobs:
           CIBW_BEFORE_BUILD: python script/copy_lib
           CIBW_TEST_REQUIRES: pytest
           CIBW_TEST_COMMAND: python -m pytest -vv {project}/tests
+          CIBW_ENVIRONMENT_MACOS: MACOSX_DEPLOYMENT_TARGET=15.2
 
           # Don't build PyPy and MUSL wheels for now
           CIBW_SKIP: "pp* *-musllinux_*"
