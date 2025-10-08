@@ -1,9 +1,11 @@
 """Command-line utility for microWakeWord."""
+
 import argparse
 import sys
 import wave
 
-from pymicro_wakeword import MicroWakeWord, Model
+from .const import Model
+from .microwakeword import MicroWakeWord, MicroWakeWordFeatures
 
 
 def main() -> None:
@@ -22,6 +24,8 @@ def main() -> None:
     else:
         mww = MicroWakeWord.from_builtin(Model(args.model))
 
+    mww_features = MicroWakeWordFeatures()
+
     if args.wav_file:
         for wav_path in args.wav_file:
             with wave.open(wav_path, "rb") as wav_file:
@@ -30,23 +34,29 @@ def main() -> None:
                 assert wav_file.getnchannels() == 1, "Mono required"
 
                 audio_bytes = wav_file.readframes(wav_file.getnframes())
-                result = mww.process_clip(audio_bytes)
-                if result.detected:
-                    print(wav_path, "detected", result.detected_seconds)
-                else:
+                detected = False
+                for features in mww_features.process_streaming(audio_bytes):
+                    if mww.process_streaming(features):
+                        print(wav_path, "detected")
+                        detected = True
+                        break
+
+                if not detected:
                     print(wav_path, "not-detected")
 
                 mww.reset()
+                mww_features.reset()
     else:
         # Live
         try:
             while True:
-                chunk = sys.stdin.buffer.read(mww.bytes_per_chunk)
+                chunk = sys.stdin.buffer.read(2048)
                 if not chunk:
                     break
 
-                if mww.process_streaming(chunk):
-                    print(args.model, flush=True)
+                for features in mww_features.process_streaming(chunk):
+                    if mww.process_streaming(features):
+                        print(args.model, flush=True)
 
         except KeyboardInterrupt:
             pass
