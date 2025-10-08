@@ -9,6 +9,7 @@ class Model(str, Enum):
     OKAY_NABU = "okay_nabu"
     HEY_JARVIS = "hey_jarvis"
     HEY_MYCROFT = "hey_mycroft"
+    ALEXA = "alexa"
 
 
 @dataclass
