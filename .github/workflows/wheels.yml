@@ -19,25 +19,13 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel==2.23.2
+      - name: Copy tflite library
+        run: script/copy_lib
 
       - name: Build wheels
-        run: python -m cibuildwheel --output-dir wheelhouse
-        env:
-          CIBW_BUILD: "cp39-*"
-          CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_28
-          CIBW_MANYLINUX_AARCH64_IMAGE: manylinux_2_28
-          CIBW_ARCHS: auto64
-          CIBW_BEFORE_BUILD: python script/copy_lib && ls -la pymicro_wakeword
-          CIBW_TEST_REQUIRES: pytest
-          CIBW_TEST_COMMAND: python -m pytest -vv {project}/tests
-          CIBW_ENVIRONMENT_MACOS: MACOSX_DEPLOYMENT_TARGET=15.2
-
-          # Don't build PyPy and MUSL wheels for now
-          CIBW_SKIP: "pp* *-musllinux_*"
+        run: python -m build --wheel
 
       - uses: actions/upload-artifact@v4
         with:
-          name: piper-${{ matrix.os }}
-          path: ./wheelhouse/*.whl
+          name: pymicro_wakeword-${{ matrix.os }}
+          path: ./dist/*.whl
