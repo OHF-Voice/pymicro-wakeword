@@ -42,3 +42,4 @@ if _DEST_LIB_DIR.exists():
     shutil.rmtree(_DEST_LIB_DIR)
 
 shutil.copytree(platform_src_dir, platform_dest_dir)
+print(platform_dest_dir)
