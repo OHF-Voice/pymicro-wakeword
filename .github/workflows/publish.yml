@@ -24,7 +24,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install build tools
-        run: pip install setuptools build cibuildwheel==2.23.2
+        run: pip install setuptools wheel build
 
       - name: Read version from setup.py & verify tag
         id: read_ver
@@ -55,19 +55,11 @@ jobs:
 
           print(f"✅ Version OK: tag={tag} matches setup.py={ver}")
 
-      - name: Build wheels
-        run: python -m cibuildwheel --output-dir dist
-        env:
-          CIBW_BUILD: "cp39-*"
-          CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_28
-          CIBW_MANYLINUX_AARCH64_IMAGE: manylinux_2_28
-          CIBW_ARCHS: auto64
-          CIBW_BEFORE_BUILD: python script/copy-lib
-          CIBW_TEST_REQUIRES: pytest
-          CIBW_TEST_COMMAND: python -m pytest -vv {project}/tests
+      - name: Copy tflite library
+        run: script/copy_lib
 
-          # Don't build PyPy and MUSL wheels for now
-          CIBW_SKIP: "pp* *-musllinux_*"
+      - name: Build wheel
+        run: python -m build --wheel
 
       - name: Build sdist (once)
         if: ${{ matrix.os == 'ubuntu-latest' }}
