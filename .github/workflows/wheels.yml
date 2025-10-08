@@ -25,8 +25,14 @@ jobs:
       - name: Copy tflite library
         run: script/copy_lib
 
-      - name: Build wheels
+      - name: Build wheel
         run: python -m build --wheel
+
+      - name: Test wheel
+        run: |
+          python -m venv .venv
+          .venv/bin/python3 -m pip install pytest ./dist/*.whl
+          .venv/bin/python3 -m pytest tests
 
       - uses: actions/upload-artifact@v4
         with:
