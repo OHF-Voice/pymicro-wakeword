@@ -6,7 +6,7 @@ from pathlib import Path
 
 _DIR = Path(__file__).parent
 _PROGRAM_DIR = _DIR.parent
-_MODULE = _PROGRAM_DIR.name.replace("-", "_")
+_MODULE = "pymicro_wakeword"
 _MODULE_DIR = _PROGRAM_DIR / _MODULE
 _SRC_LIB_DIR = _PROGRAM_DIR / "lib"
 _DEST_LIB_DIR = _MODULE_DIR / "lib"
