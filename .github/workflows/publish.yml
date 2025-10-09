@@ -63,6 +63,9 @@ jobs:
       - name: Copy tflite library
         run: script/copy_lib
 
+      - name: Build wheel
+        run: python -m build --wheel
+
       - name: Build sdist (once)
         if: ${{ matrix.os == 'ubuntu-latest' }}
         run: python -m build --sdist
