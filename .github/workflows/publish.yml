@@ -81,6 +81,7 @@ jobs:
           PY
 
       - name: Install wheel
+        shell: bash
         run: |
           ${{ steps.venv.outputs.python }} -m pip install pytest dist/*.whl
 
