@@ -61,6 +61,27 @@ jobs:
       - name: Build wheel
         run: python -m build --wheel
 
+      - name: Create venv
+        run: python -m venv .venv
+
+      - name: Determine venv Python path
+        id: venv
+        run: |
+          python - <<'PY'
+          import sys, pathlib, json
+          venv = pathlib.Path(".venv")
+          py = venv / ("Scripts" if sys.platform == "win32" else "bin") / ("python.exe" if sys.platform == "win32" else "python")
+          print(f"::set-output name=python::{py}")
+          PY
+
+      - name: Install wheel
+        run: |
+          ${{ steps.venv.outputs.python }} -m pip install dist/*.whl
+
+      - name: Test wheel
+        run: |
+          ${{ steps.venv.outputs.python }} -m pytest tests
+
       - name: Build sdist (once)
         if: ${{ matrix.os == 'ubuntu-latest' }}
         run: python -m build --sdist
