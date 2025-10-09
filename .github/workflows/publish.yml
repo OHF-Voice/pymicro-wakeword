@@ -71,6 +71,7 @@ jobs:
 
       - name: Determine venv Python path
         id: venv
+        shell: bash
         run: |
           python - <<'PY'
           import sys, pathlib, json
