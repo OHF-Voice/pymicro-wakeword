@@ -2,6 +2,8 @@
 
 Python library for [microWakeWord](https://github.com/kahrendt/microWakeWord).
 
+Uses a [pre-compiled Tensorflow Lite library](https://github.com/tphakala/tflite_c).
+
 
 ## Install
 
