@@ -63,32 +63,6 @@ jobs:
       - name: Copy tflite library
         run: script/copy_lib
 
-      - name: Build wheel
-        run: python -m build --wheel
-
-      - name: Create venv
-        run: python -m venv .venv
-
-      - name: Determine venv Python path
-        id: venv
-        shell: bash
-        run: |
-          python - <<'PY'
-          import sys, pathlib, json
-          venv = pathlib.Path(".venv")
-          py = venv / ("Scripts" if sys.platform == "win32" else "bin") / ("python.exe" if sys.platform == "win32" else "python")
-          print(f"::set-output name=python::{py}")
-          PY
-
-      - name: Install wheel
-        shell: bash
-        run: |
-          ${{ steps.venv.outputs.python }} -m pip install pytest dist/*.whl
-
-      - name: Test wheel
-        run: |
-          ${{ steps.venv.outputs.python }} -m pytest tests
-
       - name: Build sdist (once)
         if: ${{ matrix.os == 'ubuntu-latest' }}
         run: python -m build --sdist
@@ -101,6 +75,36 @@ jobs:
             dist/*.whl
             dist/*.tar.gz
           if-no-files-found: error
+
+  test:
+    needs: build
+    name: Test wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Download all dists
+        uses: actions/download-artifact@v4
+        with:
+          pattern: dist-*
+          merge-multiple: true
+          path: dist
+
+      - name: Install wheel
+        shell: bash
+        run: |
+          python -m pip install pytest dist/*.whl
+
+      - name: Test wheel
+        run: |
+          python -m pytest tests
 
   changelog:
     needs: build
@@ -170,7 +174,7 @@ jobs:
           path: RELEASE_NOTES.md
 
   publish:
-    needs: [build, changelog]
+    needs: [build, test, changelog]
     runs-on: ubuntu-latest
     environment: pypi
     permissions:
@@ -190,7 +194,7 @@ jobs:
           verbose: true
 
   github_release:
-    needs: [build, changelog, publish]
+    needs: [build, test, changelog, publish]
     runs-on: ubuntu-latest
     permissions:
       contents: write
