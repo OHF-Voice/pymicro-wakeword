@@ -102,9 +102,9 @@ jobs:
           merge-multiple: true
           path: dist
 
-      - name: Install wheel (linux/amd64)
+      - name: Install wheel
         run: |
-          python -m pip install pytest
+          python -m pip install pytest numpy pymicro-features
           python -m pip install --no-index --only-binary :all: --find-links dist/ pymicro-wakeword
 
       - name: Test wheel
