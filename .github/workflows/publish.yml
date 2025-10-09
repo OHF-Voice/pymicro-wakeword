@@ -81,7 +81,7 @@ jobs:
 
       - name: Install wheel
         run: |
-          ${{ steps.venv.outputs.python }} -m pip install dist/*.whl
+          ${{ steps.venv.outputs.python }} -m pip install pytest dist/*.whl
 
       - name: Test wheel
         run: |
