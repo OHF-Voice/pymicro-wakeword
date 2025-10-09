@@ -27,11 +27,13 @@ def _not_null(result, func, args):
 
 class TfLiteWakeWord:
     def __init__(self, libtensorflowlite_c_path: Union[str, Path]):
-        self.libtensorflowlite_c_path = Path(libtensorflowlite_c_path)
-        # Load ONCE with RTLD_GLOBAL
-        self.lib = C.CDLL(
-            str(self.libtensorflowlite_c_path.resolve()), mode=os.RTLD_GLOBAL
-        )
+        self.libtensorflowlite_c_path = Path(libtensorflowlite_c_path).resolve()
+
+        if sys.platform == "win32":
+            self.lib = C.CDLL(str(self.libtensorflowlite_c_path))
+        else:
+            # Load ONCE with RTLD_GLOBAL
+            self.lib = C.CDLL(str(self.libtensorflowlite_c_path), mode=os.RTLD_GLOBAL)
 
         lib = self.lib
 
