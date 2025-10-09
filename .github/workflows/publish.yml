@@ -72,7 +72,7 @@ jobs:
         if: ${{ matrix.os == 'ubuntu-latest' }}
         run: |
           auditwheel repair --plat manylinux_2_35_x86_64 -w wheelhouse dist/*.whl
-          rm dist/*-linux_amd64.whl
+          rm dist/*-linux_x86_64.whl
           mv wheelhouse/*.whl dist/
 
       - name: Build sdist (once)
