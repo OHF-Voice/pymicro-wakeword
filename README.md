@@ -13,15 +13,17 @@ pip3 install pymicro-wakeword
 ## Usage
 
 ``` python
-from pymicro_wakeword import MicroWakeWord, Model
+from pymicro_wakeword import MicroWakeWord, MicroWakeWordFeatures, Model
 
 mww = MicroWakeWord.from_builtin(Model.OKAY_NABU)
+mww_features = MicroWakeWordFeatures()
 
 # Audio must be 16-bit mono at 16Khz
 while audio := get_10ms_of_audio():
     assert len(audio) == 160 * 2  # 160 samples
-    if mww.process_streaming(audio):
-        print("Detected!")
+    for features in mww_features.process_streaming(audio):
+        if mww.process_streaming(features):
+            print("Detected!")
 ```
 
 
