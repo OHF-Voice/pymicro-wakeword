@@ -70,8 +70,6 @@ class MicroWakeWord(TfLiteWakeWord):
         self.sliding_window_size = sliding_window_size
         self.trained_languages = trained_languages
 
-        self.is_active = True
-
         # Load the model and create interpreter
         self.model_path = str(Path(tflite_model).resolve()).encode("utf-8")
         self._load_model()
@@ -99,6 +97,10 @@ class MicroWakeWord(TfLiteWakeWord):
 
         self.input_scale, self.input_zero_point = input_q.scale, input_q.zero_point
         self.output_scale, self.output_zero_point = output_q.scale, output_q.zero_point
+
+    def _unload_model(self) -> None:
+        self.lib.TfLiteInterpreterDelete(self.interpreter)
+        self.lib.TfLiteModelDelete(self.model)
 
     @staticmethod
     def from_config(
@@ -224,6 +226,7 @@ class MicroWakeWord(TfLiteWakeWord):
         self._probabilities.clear()
 
         # Need to reload model to reset intermediary results
+        self._unload_model()
         self._load_model()
 
 

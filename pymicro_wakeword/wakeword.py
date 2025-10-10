@@ -92,6 +92,12 @@ class TfLiteWakeWord:
         lib.TfLiteTensorCopyToBuffer.argtypes = [c_void_p, c_void_p, c_size_t]
         lib.TfLiteTensorCopyToBuffer.restype = TfLiteStatus
 
+        # Delete
+        lib.TfLiteInterpreterDelete.argtypes = [c_void_p]
+        lib.TfLiteInterpreterDelete.restype = None
+        lib.TfLiteModelDelete.argtypes = [c_void_p]
+        lib.TfLiteModelDelete.restype = None
+
 
 def get_platform() -> Optional[str]:
     machine = platform.machine().lower()
