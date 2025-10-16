@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Add py.typed
+
 ## 2.0.0
 
 - Use embedded TFLite library with ctypes

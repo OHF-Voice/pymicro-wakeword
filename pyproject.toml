@@ -47,6 +47,7 @@ pymicro_wakeword = [
     "models/*.json",
     "models/*.tflite",
     "lib/*",
+    "py.typed",
 ]
 
 [project.optional-dependencies]
