@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Free resources in `__del__`
 - Add py.typed
 
 ## 2.0.0

@@ -72,6 +72,8 @@ class MicroWakeWord(TfLiteWakeWord):
 
         # Load the model and create interpreter
         self.model_path = str(Path(tflite_model).resolve()).encode("utf-8")
+        self.model: Optional[ctypes.c_void_p] = None
+        self.interpreter: Optional[ctypes.c_void_p] = None
         self._load_model()
 
         self._features: List[np.ndarray] = []
@@ -99,8 +101,13 @@ class MicroWakeWord(TfLiteWakeWord):
         self.output_scale, self.output_zero_point = output_q.scale, output_q.zero_point
 
     def _unload_model(self) -> None:
-        self.lib.TfLiteInterpreterDelete(self.interpreter)
-        self.lib.TfLiteModelDelete(self.model)
+        if self.interpreter:
+            self.lib.TfLiteInterpreterDelete(self.interpreter)
+            self.interpreter = None
+
+        if self.model:
+            self.lib.TfLiteModelDelete(self.model)
+            self.model = None
 
     @staticmethod
     def from_config(
@@ -228,6 +235,9 @@ class MicroWakeWord(TfLiteWakeWord):
         # Need to reload model to reset intermediary results
         self._unload_model()
         self._load_model()
+
+    def __del__(self) -> None:
+        self._unload_model()
 
 
 # -----------------------------------------------------------------------------
