@@ -1,4 +1,5 @@
 """Tests for microWakeWord."""
+
 import itertools
 import wave
 from pathlib import Path
@@ -57,3 +58,18 @@ def test_process_streaming(model: Model, number: int) -> None:
                 break
 
         assert not detected, (model.value, other_model.value, number)
+
+
+def test_close() -> None:
+    """Test releasing of resources."""
+    mww = MicroWakeWord.from_builtin(Model.OKAY_NABU)
+    mww_features = MicroWakeWordFeatures()
+
+    features = list(mww_features.process_streaming(bytes(16000 * 2)))
+    assert features
+
+    assert all(mww.process_streaming(f) is False for f in features)
+
+    # Release resources
+    mww.close()
+    assert all(mww.process_streaming(f) is None for f in features)

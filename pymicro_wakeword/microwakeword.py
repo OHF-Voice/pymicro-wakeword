@@ -100,7 +100,8 @@ class MicroWakeWord(TfLiteWakeWord):
         self.input_scale, self.input_zero_point = input_q.scale, input_q.zero_point
         self.output_scale, self.output_zero_point = output_q.scale, output_q.zero_point
 
-    def _unload_model(self) -> None:
+    def close(self) -> None:
+        """Release resources."""
         if self.interpreter:
             self.lib.TfLiteInterpreterDelete(self.interpreter)
             self.interpreter = None
@@ -171,7 +172,7 @@ class MicroWakeWord(TfLiteWakeWord):
             libtensorflowlite_c_path=libtensorflowlite_c_path,
         )
 
-    def process_streaming(self, features: np.ndarray) -> bool:
+    def process_streaming(self, features: np.ndarray) -> Optional[bool]:
         """Return True if wake word is detected.
 
         Parameters
@@ -179,6 +180,9 @@ class MicroWakeWord(TfLiteWakeWord):
         features: ndarray
             Audio features from MicroWakeWordFeatures
         """
+        if (not self.interpreter) or (not self.model):
+            return None
+
         self._features.append(features)
 
         if len(self._features) < STRIDE:
@@ -233,11 +237,11 @@ class MicroWakeWord(TfLiteWakeWord):
         self._probabilities.clear()
 
         # Need to reload model to reset intermediary results
-        self._unload_model()
+        self.close()
         self._load_model()
 
     def __del__(self) -> None:
-        self._unload_model()
+        self.close()
 
 
 # -----------------------------------------------------------------------------
