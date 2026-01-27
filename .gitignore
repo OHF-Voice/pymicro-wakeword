@@ -16,3 +16,6 @@ __pycache__/
 /dist/
 /local/
 /pymicro_wakeword/lib/
+
+/test_features.py
+/.python-version
