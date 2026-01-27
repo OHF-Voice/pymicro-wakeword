@@ -1,5 +1,6 @@
 import ctypes
 import json
+import logging
 import statistics
 from collections import deque
 from collections.abc import Iterable
@@ -18,12 +19,14 @@ _MODULE_LIB_DIR = _DIR / "lib"
 _REPO_LIB_DIR = _REPO_DIR / "lib"
 _MODELS_DIR = _DIR / "models"
 
+_LOGGER = logging.getLogger(__name__)
+
 SAMPLES_PER_SECOND = 16000
 SAMPLES_PER_CHUNK = 160  # 10ms
 BYTES_PER_SAMPLE = 2  # 16-bit
 BYTES_PER_CHUNK = SAMPLES_PER_CHUNK * BYTES_PER_SAMPLE
 SECONDS_PER_CHUNK = SAMPLES_PER_CHUNK / SAMPLES_PER_SECOND
-STRIDE = 3
+DEFAULT_STRIDE = 3
 
 
 class MicroWakeWord(TfLiteWakeWord):
@@ -69,6 +72,7 @@ class MicroWakeWord(TfLiteWakeWord):
         self.probability_cutoff = probability_cutoff
         self.sliding_window_size = sliding_window_size
         self.trained_languages = trained_languages
+        self.stride = DEFAULT_STRIDE
 
         # Load the model and create interpreter
         self.model_path = str(Path(tflite_model).resolve()).encode("utf-8")
@@ -92,6 +96,8 @@ class MicroWakeWord(TfLiteWakeWord):
         self.output_tensor = self.lib.TfLiteInterpreterGetOutputTensor(
             self.interpreter, 0
         )
+
+        self.stride = self.lib.TfLiteTensorDim(self.input_tensor, 1)
 
         # Get quantization parameters
         input_q = self.lib.TfLiteTensorQuantizationParams(self.input_tensor)
@@ -126,6 +132,7 @@ class MicroWakeWord(TfLiteWakeWord):
         with open(config_path, "r", encoding="utf-8") as config_file:
             config = json.load(config_file)
 
+        print(config)
         micro_config = config["micro"]
 
         if libtensorflowlite_c_path is None:
@@ -185,7 +192,7 @@ class MicroWakeWord(TfLiteWakeWord):
 
         self._features.append(features)
 
-        if len(self._features) < STRIDE:
+        if len(self._features) < self.stride:
             # Not enough windows
             return False
 
@@ -227,7 +234,11 @@ class MicroWakeWord(TfLiteWakeWord):
             # Not enough probabilities
             return False
 
-        if statistics.mean(self._probabilities) > self.probability_cutoff:
+        prob_mean = statistics.mean(self._probabilities)
+        _LOGGER.debug("%s mean prob: %s", self.wake_word, prob_mean)
+
+        if prob_mean > self.probability_cutoff:
+            _LOGGER.debug("%s detected", self.wake_word)
             return True
 
         return False

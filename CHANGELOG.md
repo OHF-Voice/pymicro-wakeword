@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.2.0
+
+- Detect model stride from input tensor (fix notebook trained models)
+
 ## 2.1.0
 
 - Free resources in `__del__`

@@ -3,6 +3,7 @@
 import itertools
 import wave
 from pathlib import Path
+from typing import Optional, Union
 
 import pytest
 
@@ -14,8 +15,12 @@ _MODELS = set(Model)
 _NUM_WAVS = 3
 
 
-def _load_wav(model_name: str, number: int) -> bytes:
-    wav_path = _DIR / model_name / f"{number}.wav"
+def _load_wav(name: Union[str, Path], number: Optional[int] = None) -> bytes:
+    if number is None:
+        wav_path = Path(name)
+    else:
+        wav_path = _DIR / name / f"{number}.wav"
+
     with wave.open(str(wav_path), "rb") as wav_file:
         assert wav_file.getframerate() == 16000
         assert wav_file.getsampwidth() == 2
@@ -58,6 +63,36 @@ def test_process_streaming(model: Model, number: int) -> None:
                 break
 
         assert not detected, (model.value, other_model.value, number)
+
+
+def test_model_with_different_stride() -> None:
+    """Test a model exported from the training notebook (stride=2)."""
+    model_dir = _DIR / "computer"
+    mww = MicroWakeWord.from_config(model_dir / "computer.json")
+    mww_features = MicroWakeWordFeatures()
+
+    # positive
+    audio_bytes = _load_wav(model_dir / "computer.wav")
+    detected = False
+    for features in mww_features.process_streaming(audio_bytes):
+        if mww.process_streaming(features):
+            detected = True
+            break
+
+    assert detected, "expected computer to be detected"
+
+    mww.reset()
+    mww_features.reset()
+
+    # negative
+    audio_bytes = _load_wav(model_dir / "hey_peppa_pig.wav")
+    detected = False
+    for features in mww_features.process_streaming(audio_bytes):
+        if mww.process_streaming(features):
+            detected = True
+            break
+
+    assert not detected, "expected computer NOT to be detected"
 
 
 def test_close() -> None:
