@@ -48,6 +48,8 @@ class MicroWakeWord(TfLiteWakeWord):
         List of languages that this model was trained for
     libtensorflowlite_c_path: str | Path
         Path to tensorflowlite_c shared library
+    debug_probabilities: bool
+        If True, wake word probabilties are logged at the DEBUG level
 
     See: https://github.com/kahrendt/microWakeWord/
     """
@@ -62,6 +64,7 @@ class MicroWakeWord(TfLiteWakeWord):
         sliding_window_size: int,
         trained_languages: List[str],
         libtensorflowlite_c_path: Union[str, Path],
+        debug_probabilities: bool = False,
     ) -> None:
         """Initialize wakeword."""
         TfLiteWakeWord.__init__(self, libtensorflowlite_c_path)
@@ -73,6 +76,7 @@ class MicroWakeWord(TfLiteWakeWord):
         self.sliding_window_size = sliding_window_size
         self.trained_languages = trained_languages
         self.stride = DEFAULT_STRIDE
+        self.debug_probabilities = debug_probabilities
 
         # Load the model and create interpreter
         self.model_path = str(Path(tflite_model).resolve()).encode("utf-8")
@@ -235,10 +239,11 @@ class MicroWakeWord(TfLiteWakeWord):
             return False
 
         prob_mean = statistics.mean(self._probabilities)
-        _LOGGER.debug("%s mean prob: %s", self.wake_word, prob_mean)
+
+        if self.debug_probabilities:
+            _LOGGER.debug("%s mean prob: %s", self.wake_word, prob_mean)
 
         if prob_mean > self.probability_cutoff:
-            _LOGGER.debug("%s detected", self.wake_word)
             return True
 
         return False
