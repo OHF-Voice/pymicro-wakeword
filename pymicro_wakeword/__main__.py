@@ -16,7 +16,9 @@ def main() -> None:
     parser.add_argument("--model", choices=[m.value for m in Model])
     parser.add_argument("--config", help="Path to JSON config")
     parser.add_argument(
-        "--debug", action="store_true", help="Print debug message to console"
+        "--debug",
+        action="store_true",
+        help="Print debug message to console, including wake word probabilities",
     )
     parser.add_argument("wav_file", nargs="*")
     args = parser.parse_args()
@@ -34,6 +36,9 @@ def main() -> None:
     else:
         _LOGGER.debug("Loading builtin model: %s", args.model)
         mww = MicroWakeWord.from_builtin(Model(args.model))
+
+    if args.debug:
+        mww.debug_probabilities = True
 
     mww_features = MicroWakeWordFeatures()
 

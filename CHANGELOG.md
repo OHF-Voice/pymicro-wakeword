@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.2.1
+
+- Add a flag for debug logging of wake word probabilities
+
 ## 2.2.0
 
 - Detect model stride from input tensor (fix notebook trained models)
