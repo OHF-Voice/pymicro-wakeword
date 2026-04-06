@@ -241,7 +241,7 @@ class MicroWakeWord(TfLiteWakeWord):
         prob_mean = statistics.mean(self._probabilities)
 
         if self.debug_probabilities:
-            _LOGGER.debug("%s mean prob: %s", self.wake_word, prob_mean)
+            _LOGGER.debug("Wake word '%s' activated (probability %.3f exceeded threshold %.3f)", self.wake_word, prob_mean, self.probability_cutoff)
 
         if prob_mean > self.probability_cutoff:
             return True
