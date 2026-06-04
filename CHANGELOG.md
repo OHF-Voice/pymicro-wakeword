@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.3.0
+
+- Add `process_streaming_prob` to get wake word probability
+
 ## 2.2.1
 
 - Add a flag for debug logging of wake word probabilities

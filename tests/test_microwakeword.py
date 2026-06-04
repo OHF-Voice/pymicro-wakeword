@@ -65,6 +65,50 @@ def test_process_streaming(model: Model, number: int) -> None:
         assert not detected, (model.value, other_model.value, number)
 
 
+@pytest.mark.parametrize(
+    "model,number", list(itertools.product(_MODELS, range(1, _NUM_WAVS + 1)))
+)
+def test_process_streaming_prb(model: Model, number: int) -> None:
+    """Test streaming processing with probability."""
+    mww = MicroWakeWord.from_builtin(model)
+    mww_features = MicroWakeWordFeatures()
+
+    # positive
+    audio_bytes = _load_wav(model.value, number)
+    max_prob = 0.0
+    for features in mww_features.process_streaming(audio_bytes):
+        prob = mww.process_streaming_prob(features)
+        if prob is None:
+            continue
+
+        max_prob = max(prob, max_prob)
+
+    assert max_prob > mww.probability_cutoff, (model.value, number)
+
+    # Use other wake word samples as negative samples
+    for other_model in _MODELS:
+        if model == other_model:
+            continue
+
+        max_prob = 0.0
+        mww.reset()
+        mww_features.reset()
+
+        audio_bytes = _load_wav(other_model.value, number)
+        for features in mww_features.process_streaming(audio_bytes):
+            prob = mww.process_streaming_prob(features)
+            if prob is None:
+                continue
+
+            max_prob = max(prob, max_prob)
+
+        assert max_prob <= mww.probability_cutoff, (
+            model.value,
+            other_model.value,
+            number,
+        )
+
+
 def test_model_with_different_stride() -> None:
     """Test a model exported from the training notebook (stride=2)."""
     model_dir = _DIR / "computer"

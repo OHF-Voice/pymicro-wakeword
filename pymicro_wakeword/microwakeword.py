@@ -191,6 +191,22 @@ class MicroWakeWord(TfLiteWakeWord):
         features: ndarray
             Audio features from MicroWakeWordFeatures
         """
+        prob = self.process_streaming_prob(features)
+        if prob is None:
+            return None
+
+        return prob > self.probability_cutoff
+
+    def process_streaming_prob(self, features: np.ndarray) -> Optional[float]:
+        """Return wake word probability.
+
+        Compare to probability_cutoff to determine if wake word was detected.
+
+        Parameters
+        ----------
+        features: ndarray
+            Audio features from MicroWakeWordFeatures
+        """
         if (not self.interpreter) or (not self.model):
             return None
 
@@ -198,7 +214,7 @@ class MicroWakeWord(TfLiteWakeWord):
 
         if len(self._features) < self.stride:
             # Not enough windows
-            return False
+            return 0.0
 
         # Allocate and quantize input data
         quant_features = np.round(
@@ -236,17 +252,19 @@ class MicroWakeWord(TfLiteWakeWord):
 
         if len(self._probabilities) < self.sliding_window_size:
             # Not enough probabilities
-            return False
+            return 0.0
 
         prob_mean = statistics.mean(self._probabilities)
 
         if self.debug_probabilities:
-            _LOGGER.debug("Wake word '%s' activated (probability %.3f exceeded threshold %.3f)", self.wake_word, prob_mean, self.probability_cutoff)
+            _LOGGER.debug(
+                "Wake word '%s' activated (probability %.3f exceeded threshold %.3f)",
+                self.wake_word,
+                prob_mean,
+                self.probability_cutoff,
+            )
 
-        if prob_mean > self.probability_cutoff:
-            return True
-
-        return False
+        return prob_mean
 
     def reset(self) -> None:
         self._features.clear()
