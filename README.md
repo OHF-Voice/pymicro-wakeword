@@ -28,6 +28,7 @@ while audio := get_10ms_of_audio():
             print("Detected!")
 ```
 
+Use `process_streaming_prob` instead to get the wake word probability. If this probability is greater than `probability_cutoff`, the wake word is detected.
 
 ## Command-Line
 
