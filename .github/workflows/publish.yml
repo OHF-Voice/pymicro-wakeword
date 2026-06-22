@@ -96,6 +96,14 @@ jobs:
 
   # 32-bit ARM (armv7l / armhf) — no native GitHub runner, built under QEMU
   # inside a manylinux container so the wheel is PyPI-compatible.
+  #
+  # NOTE: the bundled prebuilt libtensorflowlite_c.so (lib/linux_armv7l/)
+  # references versioned glibc symbols up to GLIBC_2.34, so the wheel cannot
+  # be repaired to an older policy and is tagged manylinux_2_35_armv7l.
+  # This means it requires glibc >= 2.35: Debian 12 (Bookworm) / Ubuntu 22.04
+  # or newer. Older 32-bit systems — notably Raspberry Pi OS Bullseye
+  # (glibc 2.31) — cannot install it. Lowering the floor would require
+  # recompiling the TFLite C library against an older glibc.
   build_armv7l:
     name: Build wheel on linux/armv7l (QEMU)
     runs-on: ubuntu-latest
@@ -110,12 +118,12 @@ jobs:
       - name: Build + repair armv7l wheel in manylinux container
         run: |
           docker run --rm --platform linux/arm/v7 -v "$PWD":/io -w /io \
-            quay.io/pypa/manylinux_2_31_armv7l bash -c '
+            quay.io/pypa/manylinux_2_35_armv7l bash -c '
               PY=/opt/python/cp311-cp311/bin/python
               "$PY" -m pip install --upgrade build auditwheel &&
               "$PY" script/copy_lib &&
               "$PY" -m build --wheel &&
-              auditwheel repair -w wheelhouse dist/*.whl &&
+              auditwheel repair --plat manylinux_2_35_armv7l -w wheelhouse dist/*.whl &&
               rm -f dist/*-linux_armv7l.whl &&
               mv wheelhouse/*.whl dist/
             '

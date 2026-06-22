@@ -3,6 +3,9 @@
 ## 2.4.1
 
 - Fix 32-bit ARM wheel workflow
+  - The `armv7l` wheel is `manylinux_2_35` and requires glibc >= 2.35
+    (Debian 12 / Ubuntu 22.04 or newer); older systems such as Raspberry Pi
+    OS Bullseye are not supported by the prebuilt TFLite library.
 
 ## 2.4.0
 
