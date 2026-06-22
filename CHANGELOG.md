@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 2.4.0
 
 - Add support for 32-bit ARM (`armv7l` / `armhf`)
 - Fix `int8` conversion
