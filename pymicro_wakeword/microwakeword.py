@@ -195,7 +195,18 @@ class MicroWakeWord(TfLiteWakeWord):
         if prob is None:
             return None
 
-        return prob > self.probability_cutoff
+        if prob <= self.probability_cutoff:
+            return False
+
+        if self.debug_probabilities:
+            _LOGGER.debug(
+                "Wake word '%s' activated (probability %.3f exceeded threshold %.3f)",
+                self.wake_word,
+                prob,
+                self.probability_cutoff,
+            )
+
+        return True
 
     def process_streaming_prob(self, features: np.ndarray) -> Optional[float]:
         """Return wake word probability.
@@ -255,14 +266,6 @@ class MicroWakeWord(TfLiteWakeWord):
             return 0.0
 
         prob_mean = statistics.mean(self._probabilities)
-
-        if self.debug_probabilities:
-            _LOGGER.debug(
-                "Wake word '%s' activated (probability %.3f exceeded threshold %.3f)",
-                self.wake_word,
-                prob_mean,
-                self.probability_cutoff,
-            )
 
         return prob_mean
 
