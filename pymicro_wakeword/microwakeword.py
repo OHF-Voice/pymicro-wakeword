@@ -28,6 +28,10 @@ BYTES_PER_CHUNK = SAMPLES_PER_CHUNK * BYTES_PER_SAMPLE
 SECONDS_PER_CHUNK = SAMPLES_PER_CHUNK / SAMPLES_PER_SECOND
 DEFAULT_STRIDE = 3
 
+# TfLiteType enum value -> numpy dtype for quantized tensors.
+# 3 == kTfLiteUInt8, 9 == kTfLiteInt8
+_TFLITE_TYPE_TO_NP = {3: np.uint8, 9: np.int8}
+
 
 class MicroWakeWord(TfLiteWakeWord):
     """Tensorflow-based wake word detection.
@@ -109,6 +113,21 @@ class MicroWakeWord(TfLiteWakeWord):
 
         self.input_scale, self.input_zero_point = input_q.scale, input_q.zero_point
         self.output_scale, self.output_zero_point = output_q.scale, output_q.zero_point
+
+        # Quantized tensors may be int8 or uint8. Use the dtype the model
+        # actually declares so negative quantized values are not mangled by an
+        # out-of-range float -> uint8 cast (raises RuntimeWarning on some
+        # platforms and relies on two's-complement wraparound for correctness).
+        input_type = self.lib.TfLiteTensorType(self.input_tensor)
+        output_type = self.lib.TfLiteTensorType(self.output_tensor)
+        try:
+            self.input_dtype = _TFLITE_TYPE_TO_NP[input_type]
+            self.output_dtype = _TFLITE_TYPE_TO_NP[output_type]
+        except KeyError as exc:
+            raise ValueError(
+                f"Unsupported quantized tensor type (input={input_type}, "
+                f"output={output_type}); expected int8 or uint8"
+            ) from exc
 
     def close(self) -> None:
         """Release resources."""
@@ -231,7 +250,7 @@ class MicroWakeWord(TfLiteWakeWord):
         quant_features = np.round(
             np.concatenate(self._features, axis=1) / self.input_scale
             + self.input_zero_point
-        ).astype(np.uint8)
+        ).astype(self.input_dtype)
 
         # Stride instead of rolling
         self._features.clear()
@@ -247,7 +266,7 @@ class MicroWakeWord(TfLiteWakeWord):
 
         # Read output
         output_bytes = self.lib.TfLiteTensorByteSize(self.output_tensor)
-        output_data = np.empty(output_bytes, dtype=np.uint8)
+        output_data = np.empty(output_bytes, dtype=self.output_dtype)
         self.lib.TfLiteTensorCopyToBuffer(
             self.output_tensor,
             output_data.ctypes.data_as(ctypes.c_void_p),
