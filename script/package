@@ -21,14 +21,18 @@ else:
     python_exe = "python3"
 
 machine = platform.machine().lower()
-is_arm = ("arm" in machine) or ("aarch" in machine)
+is_arm64 = ("aarch" in machine) or (machine == "arm64")
+is_arm32 = machine.startswith("armv") or machine in ("arm", "armhf", "armel")
 is_amd64 = machine in ("x86_64", "amd64")
 system = sys.platform
 platform_name = ""
 
 if system.startswith("linux"):
-    if is_arm:
+    if is_arm64:
         platform_name = "linux_arm64"
+
+    if is_arm32:
+        platform_name = "linux_armv7l"
 
     if is_amd64:
         platform_name = "linux_amd64"
@@ -38,7 +42,7 @@ if system == "win32":
         platform_name = "windows_amd64"
 
 if system == "darwin":
-    if is_arm:
+    if is_arm64:
         platform_name = "darwin_arm64"
 
 if not platform_name:

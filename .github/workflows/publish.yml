@@ -94,6 +94,39 @@ jobs:
             dist/*.tar.gz
           if-no-files-found: error
 
+  # 32-bit ARM (armv7l / armhf) — no native GitHub runner, built under QEMU
+  # inside a manylinux container so the wheel is PyPI-compatible.
+  build_armv7l:
+    name: Build wheel on linux/armv7l (QEMU)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up QEMU (arm)
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm
+
+      - name: Build + repair armv7l wheel in manylinux container
+        run: |
+          docker run --rm --platform linux/arm/v7 -v "$PWD":/io -w /io \
+            quay.io/pypa/manylinux2014_armv7l bash -c '
+              PY=/opt/python/cp311-cp311/bin/python
+              "$PY" -m pip install --upgrade build auditwheel &&
+              "$PY" script/copy_lib &&
+              "$PY" -m build --wheel &&
+              auditwheel repair -w wheelhouse dist/*.whl &&
+              rm -f dist/*-linux_armv7l.whl &&
+              mv wheelhouse/*.whl dist/
+            '
+
+      - name: Upload armv7l wheel
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-armv7l
+          path: dist/*.whl
+          if-no-files-found: error
+
   test:
     needs: build
     name: Test wheels on ${{ matrix.os }}
