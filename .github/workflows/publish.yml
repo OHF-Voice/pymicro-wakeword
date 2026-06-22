@@ -110,7 +110,7 @@ jobs:
       - name: Build + repair armv7l wheel in manylinux container
         run: |
           docker run --rm --platform linux/arm/v7 -v "$PWD":/io -w /io \
-            quay.io/pypa/manylinux2014_armv7l bash -c '
+            quay.io/pypa/manylinux_2_31_armv7l bash -c '
               PY=/opt/python/cp311-cp311/bin/python
               "$PY" -m pip install --upgrade build auditwheel &&
               "$PY" script/copy_lib &&
@@ -128,7 +128,7 @@ jobs:
           if-no-files-found: error
 
   test:
-    needs: build
+    needs: [build, build_armv7l]
     name: Test wheels on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
@@ -227,7 +227,7 @@ jobs:
           path: RELEASE_NOTES.md
 
   publish:
-    needs: [build, test, changelog]
+    needs: [build, build_armv7l, test, changelog]
     runs-on: ubuntu-latest
     environment: pypi
     permissions:
@@ -247,7 +247,7 @@ jobs:
           verbose: true
 
   github_release:
-    needs: [build, test, changelog, publish]
+    needs: [build, build_armv7l, test, changelog, publish]
     runs-on: ubuntu-latest
     permissions:
       contents: write

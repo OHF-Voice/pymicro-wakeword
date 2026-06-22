@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.4.1
+
+- Fix 32-bit ARM wheel workflow
+
 ## 2.4.0
 
 - Add support for 32-bit ARM (`armv7l` / `armhf`)
