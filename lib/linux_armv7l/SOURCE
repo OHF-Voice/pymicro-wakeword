@@ -1,0 +1,5 @@
+libtensorflowlite_c.so for 32-bit ARM (armv7l / armhf).
+TensorFlow Lite C v2.17.1 (matches the other platforms from tphakala/tflite_c).
+Built for armv7-a + neon-vfpv4 (Cortex-A7) via Docker/QEMU; see the PR for the
+reproducible build script. tphakala/tflite_c does not publish an armv7l release,
+so this lib is supplied here directly.

@@ -101,13 +101,19 @@ class TfLiteWakeWord:
 
 def get_platform() -> Optional[str]:
     machine = platform.machine().lower()
-    is_arm = ("arm" in machine) or ("aarch" in machine)
+    is_arm64 = ("aarch" in machine) or (machine == "arm64")
+    # 32-bit ARM (armv6l/armv7l/armv8l/armhf). Must be checked separately from
+    # is_arm64: a 32-bit process needs the 32-bit lib, not the aarch64 one.
+    is_arm32 = machine.startswith("armv") or machine in ("arm", "armhf", "armel")
     is_amd64 = machine in ("x86_64", "amd64")
     system = sys.platform
 
     if system.startswith("linux"):
-        if is_arm:
+        if is_arm64:
             return "linux_arm64"
+
+        if is_arm32:
+            return "linux_armv7l"
 
         if is_amd64:
             return "linux_amd64"
@@ -117,7 +123,7 @@ def get_platform() -> Optional[str]:
             return "windows_amd64"
 
     if system == "darwin":
-        if is_arm:
+        if is_arm64:
             return "darwin_arm64"
 
     # Not supported
