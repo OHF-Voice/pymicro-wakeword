@@ -8,6 +8,11 @@
   - `probability_cutoff` lowered from 0.97 to 0.85
 - Remove a stray debug `print` that wrote the parsed config to stdout on
   every `from_config` call, corrupting the CLI's stdout stream
+- Fix `trained_languages` always being empty
+  - It was read from the `micro` section instead of the top level of the config
+- Fix output tensor buffer being allocated with a byte count instead of an
+  element count
+- Remove an unused audio buffer from `MicroWakeWord`
 
 ## 2.4.1
 
