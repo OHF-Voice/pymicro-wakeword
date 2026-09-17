@@ -90,7 +90,6 @@ class MicroWakeWord(TfLiteWakeWord):
 
         self._features: List[np.ndarray] = []
         self._probabilities: Deque[float] = deque(maxlen=self.sliding_window_size)
-        self._audio_buffer = bytes()
 
     def _load_model(self) -> None:
         self.model = self.lib.TfLiteModelCreateFromFile(self.model_path)
@@ -183,7 +182,7 @@ class MicroWakeWord(TfLiteWakeWord):
             tflite_model=config_path.parent / config["model"],
             probability_cutoff=micro_config["probability_cutoff"],
             sliding_window_size=micro_config["sliding_window_size"],
-            trained_languages=micro_config.get("trained_languages", []),
+            trained_languages=config.get("trained_languages", []),
             libtensorflowlite_c_path=libtensorflowlite_c_path,
         )
 
@@ -265,7 +264,10 @@ class MicroWakeWord(TfLiteWakeWord):
 
         # Read output
         output_bytes = self.lib.TfLiteTensorByteSize(self.output_tensor)
-        output_data = np.empty(output_bytes, dtype=self.output_dtype)
+        output_data = np.empty(
+            output_bytes // np.dtype(self.output_dtype).itemsize,
+            dtype=self.output_dtype,
+        )
         self.lib.TfLiteTensorCopyToBuffer(
             self.output_tensor,
             output_data.ctypes.data_as(ctypes.c_void_p),

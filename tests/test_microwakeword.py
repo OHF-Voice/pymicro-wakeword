@@ -109,6 +109,16 @@ def test_process_streaming_prb(model: Model, number: int) -> None:
         )
 
 
+@pytest.mark.parametrize("model", sorted(_MODELS, key=lambda m: m.value))
+def test_trained_languages(model: Model) -> None:
+    """Test that trained languages are loaded from the config."""
+    mww = MicroWakeWord.from_builtin(model)
+
+    # "trained_languages" is a top-level config key, not part of "micro"
+    assert mww.trained_languages, model.value
+    assert "en" in mww.trained_languages, model.value
+
+
 def test_model_with_different_stride() -> None:
     """Test a model exported from the training notebook (stride=2)."""
     model_dir = _DIR / "computer"
