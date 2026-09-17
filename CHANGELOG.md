@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.5.0
+
+- Update `okay_nabu` model to the `okay_nabu_20241226.3` release
+  - This is the model used by Home Assistant Voice PE
+  - Adds `nl`, `fr`, `de`, `it`, `es`, and `sv` to the trained languages
+  - `probability_cutoff` lowered from 0.97 to 0.85
+- Remove a stray debug `print` that wrote the parsed config to stdout on
+  every `from_config` call, corrupting the CLI's stdout stream
+
 ## 2.4.1
 
 - Fix 32-bit ARM wheel workflow

@@ -155,7 +155,6 @@ class MicroWakeWord(TfLiteWakeWord):
         with open(config_path, "r", encoding="utf-8") as config_file:
             config = json.load(config_file)
 
-        print(config)
         micro_config = config["micro"]
 
         if libtensorflowlite_c_path is None:
