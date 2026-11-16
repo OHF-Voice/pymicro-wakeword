@@ -11,6 +11,17 @@ Uses a [pre-compiled Tensorflow Lite library](https://github.com/tphakala/tflite
 pip3 install pymicro-wakeword
 ```
 
+Wheels are published for `x86_64`, `aarch64`, `armv7l` (32-bit ARM, glibc >=
+2.35), macOS `arm64` and Windows `x86_64`. On a platform without a bundled
+library — `armv6l` (Pi Zero W, Pi 1) for example — build or obtain a
+`libtensorflowlite_c` for that architecture and pass it explicitly:
+
+``` python
+mww = MicroWakeWord.from_config(
+    "okay_nabu.json", libtensorflowlite_c_path="/path/to/libtensorflowlite_c.so"
+)
+```
+
 
 ## Usage
 

@@ -1,3 +1,8 @@
 recursive-include pymicro_wakeword/models *.json
 recursive-include pymicro_wakeword/models *.tflite
-recursive-include pymicro_wakeword/lib *
+# Every vendored library, so a wheel built from this sdist on any machine can
+# select the right one. setup.py copies lib/<platform>/ into the package at
+# build time; pymicro_wakeword/lib/ itself is not shipped, because a stale
+# default there is what made third-party builds package the x86-64 binary.
+recursive-include lib *
+prune pymicro_wakeword/lib

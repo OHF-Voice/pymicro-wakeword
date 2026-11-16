@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+- Build the correct `libtensorflowlite_c` library from the sdist
+  - The sdist now ships every `lib/<platform>/` directory, and `setup.py`
+    selects one in `build_py`, so a wheel built by a third party (piwheels)
+    no longer packages the x86-64 default
+  - A platform with no vendored library now fails the build with a message
+    naming `libtensorflowlite_c_path`, instead of producing a wheel that
+    installs and then cannot load
+  - `armv6l` is no longer mapped to the `armv7l` library: that one needs
+    armv7-a + neon-vfpv4, which ARM1176 (Pi Zero W, Pi 1) does not have
+- Report the library path and architecture when `ctypes.CDLL` fails
+
 ## 2.5.0
 
 - Update `okay_nabu` model to the `okay_nabu_20241226.3` release
