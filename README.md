@@ -12,8 +12,8 @@ pip3 install pymicro-wakeword
 ```
 
 Wheels are published for `x86_64`, `aarch64`, `armv7l` (32-bit ARM, glibc >=
-2.35), macOS `arm64` and Windows `x86_64`. On a platform without a bundled
-library — `armv6l` (Pi Zero W, Pi 1) for example — build or obtain a
+2.35), `armv6l` (Pi Zero W, Pi 1, glibc >= 2.36), macOS `arm64` and Windows
+`x86_64`. On a platform without a bundled library, build or obtain a
 `libtensorflowlite_c` for that architecture and pass it explicitly:
 
 ``` python

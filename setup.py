@@ -37,15 +37,15 @@ _DEST_LIB_DIR = _PROGRAM_DIR / "pymicro_wakeword" / "lib"
 
 # Vendored libraries, keyed by the value of platform.machine() they run on.
 #
-# armv6l is deliberately absent. The armv7l library is built for
+# armv6l must not fall through to linux_armv7l. The armv7l library is built for
 # armv7-a + neon-vfpv4, and ARM1176 (Pi Zero W, Pi 1) has neither, so loading it
-# would raise SIGILL rather than a clear error. There is no armv6 library to
-# ship, so the build fails instead of producing a wheel that crashes on import.
+# raises SIGILL rather than a clear error. It has its own library instead.
 _MACHINE_TO_PLATFORM = {
     "x86_64": "linux_amd64",
     "amd64": "linux_amd64",
     "aarch64": "linux_arm64",
     "arm64": "linux_arm64",
+    "armv6l": "linux_armv6l",
     "armv7l": "linux_armv7l",
     "armv8l": "linux_armv7l",
     "armhf": "linux_armv7l",

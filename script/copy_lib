@@ -13,9 +13,10 @@ _DEST_LIB_DIR = _MODULE_DIR / "lib"
 
 machine = platform.machine().lower()
 is_arm64 = ("aarch" in machine) or (machine == "arm64")
-# armv6l is excluded: the vendored armv7l library needs armv7-a + neon-vfpv4,
-# which ARM1176 does not have. Failing here beats shipping a wheel that
-# raises SIGILL on import.
+# armv6l must be checked before the armv7l group: the vendored armv7l library
+# needs armv7-a + neon-vfpv4, which ARM1176 does not have, so it would raise
+# SIGILL on import.
+is_armv6 = machine == "armv6l"
 is_arm32 = machine in ("armv7l", "armv8l", "arm", "armhf", "armel")
 is_amd64 = machine in ("x86_64", "amd64")
 system = sys.platform
@@ -24,6 +25,9 @@ platform_name = ""
 if system.startswith("linux"):
     if is_arm64:
         platform_name = "linux_arm64"
+
+    if is_armv6:
+        platform_name = "linux_armv6l"
 
     if is_arm32:
         platform_name = "linux_armv7l"

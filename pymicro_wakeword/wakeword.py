@@ -119,13 +119,13 @@ class TfLiteWakeWord:
 def get_platform() -> Optional[str]:
     machine = platform.machine().lower()
     is_arm64 = ("aarch" in machine) or (machine == "arm64")
-    # 32-bit ARM (armv7l/armv8l/armhf). Must be checked separately from
-    # is_arm64: a 32-bit process needs the 32-bit lib, not the aarch64 one.
+    # 32-bit ARM. Must be checked separately from is_arm64: a 32-bit process
+    # needs the 32-bit lib, not the aarch64 one.
     #
-    # armv6l is deliberately excluded. The vendored armv7l library is built for
+    # armv6l is checked before the armv7l group. The armv7l library is built for
     # armv7-a + neon-vfpv4, and ARM1176 (Pi Zero W, Pi 1) has neither, so
-    # loading it would raise SIGILL instead of a clear error. Returning None
-    # here makes from_config() report that no library is available.
+    # loading it would raise SIGILL instead of a clear error.
+    is_armv6 = machine == "armv6l"
     is_arm32 = machine in ("armv7l", "armv8l", "arm", "armhf", "armel")
     is_amd64 = machine in ("x86_64", "amd64")
     system = sys.platform
@@ -133,6 +133,9 @@ def get_platform() -> Optional[str]:
     if system.startswith("linux"):
         if is_arm64:
             return "linux_arm64"
+
+        if is_armv6:
+            return "linux_armv6l"
 
         if is_arm32:
             return "linux_armv7l"

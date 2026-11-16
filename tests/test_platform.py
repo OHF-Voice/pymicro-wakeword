@@ -36,13 +36,13 @@ _setup = _load_setup()
         ("amd64", "linux", "linux_amd64"),
         ("aarch64", "linux", "linux_arm64"),
         ("arm64", "linux", "linux_arm64"),
+        ("armv6l", "linux", "linux_armv6l"),
         ("armv7l", "linux", "linux_armv7l"),
         ("armv8l", "linux", "linux_armv7l"),
         ("armhf", "linux", "linux_armv7l"),
         ("AMD64", "win32", "windows_amd64"),
         ("arm64", "darwin", "darwin_arm64"),
-        # No vendored library: the armv7l one needs armv7-a + neon-vfpv4.
-        ("armv6l", "linux", None),
+        # No vendored library.
         ("i686", "linux", None),
         ("x86_64", "darwin", None),
     ],
@@ -80,17 +80,21 @@ def test_select_library_replaces_a_stale_default(tmp_path):
     assert not (dest / "stale.txt").exists()
 
 
-def test_select_library_fails_on_armv6(tmp_path):
-    """armv6l has no vendored library, so the build must stop."""
+def test_select_library_uses_the_armv6_library(tmp_path):
+    """armv6l must get its own library, never the armv7l one.
+
+    The armv7l library needs armv7-a + neon-vfpv4, which ARM1176 does not have,
+    so falling through to it would produce a wheel that raises SIGILL on import.
+    """
     src = tmp_path / "lib"
-    (src / "linux_armv7l").mkdir(parents=True)
+    for name in ("linux_armv6l", "linux_armv7l"):
+        (src / name).mkdir(parents=True)
+        (src / name / "libtensorflowlite_c.so").write_bytes(name.encode())
 
-    with pytest.raises(SystemExit) as excinfo:
-        _setup.select_library("armv6l", "linux", src, tmp_path / "dest")
+    dest = tmp_path / "pymicro_wakeword" / "lib"
+    _setup.select_library("armv6l", "linux", src, dest)
 
-    message = str(excinfo.value)
-    assert "armv6l" in message
-    assert "libtensorflowlite_c_path" in message
+    assert (dest / "libtensorflowlite_c.so").read_bytes() == b"linux_armv6l"
 
 
 def test_select_library_fails_when_the_directory_is_missing(tmp_path):
@@ -108,10 +112,9 @@ def test_select_library_fails_when_the_directory_is_missing(tmp_path):
     [
         ("x86_64", "linux_amd64"),
         ("aarch64", "linux_arm64"),
+        ("armv6l", "linux_armv6l"),
         ("armv7l", "linux_armv7l"),
         ("armv8l", "linux_armv7l"),
-        # Excluded on purpose: see get_platform().
-        ("armv6l", None),
     ],
 )
 def test_get_platform(monkeypatch, machine, expected):

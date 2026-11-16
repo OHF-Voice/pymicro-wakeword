@@ -11,6 +11,11 @@
     installs and then cannot load
   - `armv6l` is no longer mapped to the `armv7l` library: that one needs
     armv7-a + neon-vfpv4, which ARM1176 (Pi Zero W, Pi 1) does not have
+- Add a `linux_armv6l` library, so 32-bit ARMv6 (Pi Zero W, Pi 1) works
+  - TensorFlow Lite C v2.17.1, built for ARM1176JZF-S (ARMv6K, VFPv2, no NEON)
+  - Requires glibc 2.36 / GLIBCXX_3.4.30, so Raspbian bookworm and newer
+  - Built against a Raspbian armv6 sysroot: Debian's armhf crt objects and
+    libgcc are armv7-a and contain Thumb-2, which ARM1176 cannot execute
 - Report the library path and architecture when `ctypes.CDLL` fails
 
 ## 2.5.0
