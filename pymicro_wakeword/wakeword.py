@@ -29,11 +29,28 @@ class TfLiteWakeWord:
     def __init__(self, libtensorflowlite_c_path: Union[str, Path]):
         self.libtensorflowlite_c_path = Path(libtensorflowlite_c_path).resolve()
 
-        if sys.platform == "win32":
-            self.lib = C.CDLL(str(self.libtensorflowlite_c_path))
-        else:
-            # Load ONCE with RTLD_GLOBAL
-            self.lib = C.CDLL(str(self.libtensorflowlite_c_path), mode=os.RTLD_GLOBAL)
+        try:
+            if sys.platform == "win32":
+                self.lib = C.CDLL(str(self.libtensorflowlite_c_path))
+            else:
+                # Load ONCE with RTLD_GLOBAL
+                self.lib = C.CDLL(
+                    str(self.libtensorflowlite_c_path), mode=os.RTLD_GLOBAL
+                )
+        except OSError as err:
+            # A bare "wrong ELF class" does not tell the caller what to do, and
+            # the usual cause is a library built for a different architecture.
+            hint = ""
+            if "ELF class" in str(err):
+                hint = (
+                    " The library was built for a different architecture than "
+                    f"this machine ({platform.machine()})."
+                )
+            raise OSError(
+                f"Could not load {self.libtensorflowlite_c_path}: {err}.{hint} "
+                "Pass libtensorflowlite_c_path= to MicroWakeWord.from_config() "
+                "to use a library built for this platform."
+            ) from err
 
         lib = self.lib
 
@@ -102,15 +119,23 @@ class TfLiteWakeWord:
 def get_platform() -> Optional[str]:
     machine = platform.machine().lower()
     is_arm64 = ("aarch" in machine) or (machine == "arm64")
-    # 32-bit ARM (armv6l/armv7l/armv8l/armhf). Must be checked separately from
-    # is_arm64: a 32-bit process needs the 32-bit lib, not the aarch64 one.
-    is_arm32 = machine.startswith("armv") or machine in ("arm", "armhf", "armel")
+    # 32-bit ARM. Must be checked separately from is_arm64: a 32-bit process
+    # needs the 32-bit lib, not the aarch64 one.
+    #
+    # armv6l is checked before the armv7l group. The armv7l library is built for
+    # armv7-a + neon-vfpv4, and ARM1176 (Pi Zero W, Pi 1) has neither, so
+    # loading it would raise SIGILL instead of a clear error.
+    is_armv6 = machine == "armv6l"
+    is_arm32 = machine in ("armv7l", "armv8l", "arm", "armhf", "armel")
     is_amd64 = machine in ("x86_64", "amd64")
     system = sys.platform
 
     if system.startswith("linux"):
         if is_arm64:
             return "linux_arm64"
+
+        if is_armv6:
+            return "linux_armv6l"
 
         if is_arm32:
             return "linux_armv7l"

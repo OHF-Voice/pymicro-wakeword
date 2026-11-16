@@ -1,0 +1,34 @@
+libtensorflowlite_c.so for ARMv6 (armv6l / armhf): Raspberry Pi Zero W and Pi 1.
+TensorFlow Lite C v2.17.1, matching the other platforms.
+
+Target: ARM1176JZF-S (ARMv6K, VFPv2, no NEON).
+
+Built by cross-compiling in a Debian bookworm container against a Raspbian
+bookworm armv6 sysroot. The sysroot matters twice:
+
+- Raspbian's crt objects and libgcc are built for ARMv6. Debian's armhf ones are
+  built for armv7-a: `crtbeginS.o` contains Thumb-2 (`add.w`) in
+  `register_tm_clones`, which is an illegal instruction on ARM1176, and libgcc's
+  `__sync_*` helpers contain `movw`/`movt`. Linking against Debian's produces a
+  library that raises SIGILL at dlopen.
+- It sets the glibc floor. Building against trixie gives GLIBC_2.38 and
+  GLIBCXX_3.4.32, which excludes Raspbian bookworm (glibc 2.36, GCC 12). The
+  bookworm sysroot gives GLIBC_2.36 and GLIBCXX_3.4.30, so this library runs on
+  bookworm and newer, like linux_armv7l.
+
+Flags: `-O3 -marm -march=armv6k -mfpu=vfp -mfloat-abi=hard`, with XNNPACK, GPU,
+NNAPI and MMAP off.
+
+- `-marm`: ARMv6's Thumb mode is Thumb-1, which cannot use the hard-float VFP
+  ABI, so the toolchain's Thumb default fails to compile at all.
+- `-march=armv6k`: ARM1176 implements ARMv6K, which adds
+  `ldrexb`/`strexb`/`ldrexd`/`strexd`. With plain `armv6` GCC emits libcalls
+  such as `__sync_val_compare_and_swap_1` and `__atomic_load_8`, which
+  Raspbian's armv6 libgcc does not provide, so the library links but fails to
+  load.
+
+Verified on a Pi Zero W Rev 1.1 (BCM2835, ARM1176JZF-S): loads, reports
+TfLiteVersion 2.17.1, and scores the bundled models identically to the 2.14.0
+build it replaces.
+
+Reproduce with `script/build-tflite-armv6.sh` and `script/make-armv6-sysroot.sh`.

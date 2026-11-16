@@ -1,5 +1,23 @@
 # Changelog
 
+## Unreleased
+
+- Build the correct `libtensorflowlite_c` library from the sdist
+  - The sdist now ships every `lib/<platform>/` directory, and `setup.py`
+    selects one in `build_py`, so a wheel built by a third party (piwheels)
+    no longer packages the x86-64 default
+  - A platform with no vendored library now fails the build with a message
+    naming `libtensorflowlite_c_path`, instead of producing a wheel that
+    installs and then cannot load
+  - `armv6l` is no longer mapped to the `armv7l` library: that one needs
+    armv7-a + neon-vfpv4, which ARM1176 (Pi Zero W, Pi 1) does not have
+- Add a `linux_armv6l` library, so 32-bit ARMv6 (Pi Zero W, Pi 1) works
+  - TensorFlow Lite C v2.17.1, built for ARM1176JZF-S (ARMv6K, VFPv2, no NEON)
+  - Requires glibc 2.36 / GLIBCXX_3.4.30, so Raspbian bookworm and newer
+  - Built against a Raspbian armv6 sysroot: Debian's armhf crt objects and
+    libgcc are armv7-a and contain Thumb-2, which ARM1176 cannot execute
+- Report the library path and architecture when `ctypes.CDLL` fails
+
 ## 2.5.0
 
 - Update `okay_nabu` model to the `okay_nabu_20241226.3` release
